@@ -8,135 +8,53 @@
   	$sender_userid = $json_obj->events[0]->source->userId; //取得訊息發送者的id
   	$sender_txt = $json_obj->events[0]->message->text; //取得訊息內容
   	$sender_replyToken = $json_obj->events[0]->replyToken; //取得訊息的replyToken
-  	$msg_json = '{
-  "type": "flex",
-  "altText": "Flex Message",
-  "contents": {
-    "type": "bubble",
-    "hero": {
-      "type": "image",
-      "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_2_restaurant.png",
-      "size": "full",
-      "aspectRatio": "20:13",
-      "aspectMode": "cover",
-      "action": {
-        "type": "uri",
-        "label": "Action",
-        "uri": "https://linecorp.com"
-      }
-    },
-    "body": {
-      "type": "box",
-      "layout": "vertical",
-      "spacing": "md",
-      "action": {
-        "type": "uri",
-        "label": "Action",
-        "uri": "https://linecorp.com"
-      },
-      "contents": [
-        {
-          "type": "text",
-          "text": "Brown's Burger",
-          "size": "xl",
-          "weight": "bold"
-        },
-        {
-          "type": "box",
-          "layout": "vertical",
-          "spacing": "sm",
-          "contents": [
-            {
-              "type": "box",
-              "layout": "baseline",
-              "contents": [
-                {
-                  "type": "icon",
-                  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/restaurant_regular_32.png"
-                },
-                {
-                  "type": "text",
-                  "text": "$10.5",
-                  "flex": 0,
-                  "margin": "sm",
-                  "weight": "bold"
-                },
-                {
-                  "type": "text",
-                  "text": "400kcl",
-                  "size": "sm",
-                  "align": "end",
-                  "color": "#AAAAAA"
-                }
-              ]
-            },
-            {
-              "type": "box",
-              "layout": "baseline",
-              "contents": [
-                {
-                  "type": "icon",
-                  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/restaurant_large_32.png"
-                },
-                {
-                  "type": "text",
-                  "text": "$15.5",
-                  "flex": 0,
-                  "margin": "sm",
-                  "weight": "bold"
-                },
-                {
-                  "type": "text",
-                  "text": "550kcl",
-                  "size": "sm",
-                  "align": "end",
-                  "color": "#AAAAAA"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "text": "Sauce, Onions, Pickles, Lettuce & Cheese",
-          "size": "xxs",
-          "color": "#AAAAAA",
-          "wrap": true
-        }
-      ]
-    },
-    "footer": {
-      "type": "box",
-      "layout": "vertical",
-      "contents": [
-        {
-          "type": "spacer",
-          "size": "xxl"
-        },
-        {
-          "type": "button",
-          "action": {
-            "type": "uri",
-            "label": "Add to Cart",
-            "uri": "https://linecorp.com"
-          },
-          "color": "#905C44",
-          "style": "primary"
-        }
-      ]
-    }
-  }
-}';
-  	$response = array (
+	  
+	$response = array (
 		"replyToken" => $sender_replyToken,
 		"messages" => array (
 			array (
-				"type" => "flex",
-				"altText" => "This is a Flex Message",
-				"contents" => json_decode($msg_json)
+				"type" => "text",
+				"text" => "請試用quick replies功能",
+				"quickReply" => array (
+					"items" => array (
+						array (
+							"type" => "action",
+							"imageUrl" => "https://sporzfy.com/chtuser1/apple.png",
+							"action" => array (
+								"type" => "message",
+								"label"=> "Apple",
+								"text" => "這是一個Apple"
+							)
+						),
+						array (
+                            "type" => "action",
+                            "imageUrl" => "https://sporzfy.com/chtuser1/placeholder.png",
+                            "action" => array (
+                                "type" => "location",
+                                "label"=> "請選擇位置"
+                            )
+                        ),
+                        array (
+                            "type" => "action",
+                            "imageUrl" => "https://sporzfy.com/chtuser1/camera.png",
+                            "action" => array (
+                                "type" => "camera",
+                                "label"=> "啟動相機"
+                            )
+                        ),
+                        array (
+                            "type" => "action",
+                            "imageUrl" => "https://sporzfy.com/chtuser1/picture.png",
+                            "action" => array (
+                                "type" => "cameraRoll",
+                                "label"=> "啟動相簿"
+                            )
+						)
+					)
+				)	
 			)
 		)
-  	);
+	);
 			
   	fwrite($myfile, "\xEF\xBB\xBF".json_encode($response)); //在字串前面加上\xEF\xBB\xBF轉成utf8格式
   	$header[] = "Content-Type: application/json";
