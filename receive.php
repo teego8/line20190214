@@ -1,69 +1,79 @@
 <?php
-  	$json_str = file_get_contents('php://input'); //接收request的body
-  	$json_obj = json_decode($json_str); //轉成json格式
+    $json_str = file_get_contents('php://input'); //接收request的body
+    $json_obj = json_decode($json_str); //轉成json格式
   
-  	$myfile = fopen("log.txt", "w+") or die("Unable to open file!"); //設定一個log.txt來印訊息
-  	//fwrite($myfile, "\xEF\xBB\xBF".$json_str); //在字串前面加上\xEF\xBB\xBF轉成utf8格式
-  
-  	$sender_userid = $json_obj->events[0]->source->userId; //取得訊息發送者的id
-  	$sender_txt = $json_obj->events[0]->message->text; //取得訊息內容
-  	$sender_replyToken = $json_obj->events[0]->replyToken; //取得訊息的replyToken
-	  
-	$response = array (
-		"replyToken" => $sender_replyToken,
-		"messages" => array (
-			array (
-				"type" => "text",
-				"text" => "請試用quick replies功能",
-				"quickReply" => array (
-					"items" => array (
-						array (
-							"type" => "action",
-							"imageUrl" => "https://sporzfy.com/chtuser1/apple.png",
-							"action" => array (
-								"type" => "message",
-								"label"=> "Apple",
-								"text" => "這是一個Apple"
-							)
-						),
-						array (
-                            "type" => "action",
-                            "imageUrl" => "https://sporzfy.com/chtuser1/placeholder.png",
-                            "action" => array (
-                                "type" => "location",
-                                "label"=> "請選擇位置"
-                            )
-                        ),
-                        array (
-                            "type" => "action",
-                            "imageUrl" => "https://sporzfy.com/chtuser1/camera.png",
-                            "action" => array (
-                                "type" => "camera",
-                                "label"=> "啟動相機"
-                            )
-                        ),
-                        array (
-                            "type" => "action",
-                            "imageUrl" => "https://sporzfy.com/chtuser1/picture.png",
-                            "action" => array (
-                                "type" => "cameraRoll",
-                                "label"=> "啟動相簿"
-                            )
-						)
-					)
-				)	
-			)
-		)
-	);
+    $myfile = fopen("log.txt", "w+") or die("Unable to open file!"); //設定一個log.txt來印訊息
+    fwrite($myfile, "\xEF\xBB\xBF".$json_str); //在字串前面加上\xEF\xBB\xBF轉成utf8格式
+    
+    $sender_userid = $json_obj->events[0]->source->userId; //取得訊息發送者的id
+    $sender_txt = $json_obj->events[0]->message->text; //取得訊息內容
+    $sender_replyToken = $json_obj->events[0]->replyToken; //取得訊息的replyToken
+    $imageId = $json_obj->events[0]->message->id; //取得圖片訊息編號
+    $url = 'https://api.line.me/v2/bot/message/'.$imageId.'/content'; //取得圖片網址
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Authorization: Bearer 6qhDIhQ++5j1febihav54eoLSlhGIbDJyE+yy95rx0tWd4X7pLUwfOsTlavVXXFPBzBMYZyuI21X9wLrsu+aAqM+iB1UE+UaTyKItGWzqouOAaEfwuSnRwDxeVx+Iz4fpwcNzdzAZ2iU/mBreIEk0gdB04t89/1O/w1cDnyilFU='
+    ));
+    $json_content = curl_exec($ch);
+    curl_close($ch);
+    $imagefile = fopen($imageId.".jpeg", "w+") or die("Unable to open file!"); //取得圖片
+    fwrite($imagefile, $json_content); 
+    fclose($imagefile); //將圖片存在自己server上
 			
-  	fwrite($myfile, "\xEF\xBB\xBF".json_encode($response)); //在字串前面加上\xEF\xBB\xBF轉成utf8格式
-  	$header[] = "Content-Type: application/json";
-  	$header[] = "Authorization: Bearer 6qhDIhQ++5j1febihav54eoLSlhGIbDJyE+yy95rx0tWd4X7pLUwfOsTlavVXXFPBzBMYZyuI21X9wLrsu+aAqM+iB1UE+UaTyKItGWzqouOAaEfwuSnRwDxeVx+Iz4fpwcNzdzAZ2iU/mBreIEk0gdB04t89/1O/w1cDnyilFU=";
-  	$ch = curl_init("https://api.line.me/v2/bot/message/reply");
-  	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-  	curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($response));                                                                  
-  	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
-  	curl_setopt($ch, CURLOPT_HTTPHEADER, $header);                                                                                                   
-  	$result = curl_exec($ch);
-  	curl_close($ch);
+    $header[] = "Content-Type: application/json";
+    $post_data = array (
+        "requests" => array (
+            array (
+                "image" => array (
+                    "source" => array (
+                        "imageUri" => "https://159.65.4.103/cht20190214/yuan190214/".$imageId.".jpeg"
+                    )
+                ),
+                "features" => array (
+                    array (
+                        "type" => "TEXT_DETECTION",
+                        "maxResults" => 1
+                    )
+                )
+            )
+        )
+    );
+    fwrite($myfile, "\xEF\xBB\xBF".json_encode($post_data));
+    $ch = curl_init('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBJH3w6aTjoIBYhCh8GiI5byZ0Z-Q88cfg');                                                                      
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post_data));                                                                  
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);                                                                                                   
+    $result = json_decode(curl_exec($ch));
+    $result_ary = explode("\n",$result -> responses[0] -> fullTextAnnotation -> text);
+    //fwrite($myfile, "\xEF\xBB\xBF".json_encode($result -> responses[0] -> fullTextAnnotation -> text));
+    $ans_txt = "這張發票沒用了，你又製造了一張垃圾";
+    foreach ($result_ary as $val) {
+        if($val == "MB-76164441"){
+          $ans_txt = "恭喜您中獎啦，快分紅!!";
+        }
+    }
+    //fwrite($myfile, "aaaaa");
+    $response = array (
+        "replyToken" => $sender_replyToken,
+        "messages" => array (
+            array (
+                "type" => "text",
+                "text" => $ans_txt
+            //"text" => $result -> responses[0] -> fullTextAnnotation -> text
+            )
+        )
+    );
+  
+    fwrite($myfile, "\xEF\xBB\xBF".json_encode($response)); //在字串前面加上\xEF\xBB\xBF轉成utf8格式
+    $header[] = "Content-Type: application/json";
+    $header[] = "Authorization: Bearer gd1gyH+Pc5TROu9ku5u/5tDvFnffsU8nXU69zXuhTgE0dIS5nVGmx9Js8PwijeUqgFuwWXzyJ14/N5FUmp/UXsmSJbUsxMGA6AW1gozlf6cbEgSGLiC02BEaRa5wUSqE7df8FOANP1WjPW8Mh/TgtwdB04t89/1O/w1cDnyilFU=";
+    $ch = curl_init("https://api.line.me/v2/bot/message/reply");
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($response));                                                                  
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);                                                                                                   
+    $result = curl_exec($ch);
+    curl_close($ch);
 ?>
